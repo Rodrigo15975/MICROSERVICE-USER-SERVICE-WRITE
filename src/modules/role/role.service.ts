@@ -23,9 +23,7 @@ export class RoleService {
           role: data.role,
         },
       })
-      
       this.roleClient.emit(ROLE_CREATE_IN_READ, newRole)
-
       return newRole
     } catch (error) {
       console.log(error)

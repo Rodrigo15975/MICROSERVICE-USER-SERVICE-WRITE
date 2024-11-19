@@ -10,7 +10,6 @@ export class RoleController {
 
   @MessagePattern(ROLE_CREATE)
   create(@Payload() createRoleDto: CreateRoleDto) {
-    return { createRoleDto}
     return this.roleService.create(createRoleDto)
   }
 }

@@ -1,5 +1,5 @@
 const enum PATTERNAME {
-  ROLE_CREATE_IN_READ = 'role.create-read',  
+  ROLE_CREATE_IN_READ = 'role.create-read',
 }
 
 type MessagePattern = {

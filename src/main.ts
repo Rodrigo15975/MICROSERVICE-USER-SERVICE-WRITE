@@ -1,9 +1,11 @@
-import { NestFactory } from '@nestjs/core'
-import { AppModule } from './app.module'
-import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 import { ValidationPipe } from '@nestjs/common'
+import { NestFactory } from '@nestjs/core'
+import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
-import * as cookieParser from "cookie-parser";
+import { AppModule } from './app.module'
+import * as dotenv from 'dotenv'
+dotenv.config()
+
 async function bootstrap() {
   // Crear la aplicación HTTP
   const app = await NestFactory.create(AppModule)
@@ -26,18 +28,21 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.REDIS,
     options: {
-      host: 'localhost',
-      port: 6379,
+      host: process.env.REDIS_HOST,
+      port: Number(process.env.REDIS_PORT) || 6379,
     },
   })
   app.enableCors({
     credentials: true,
     origin: true,
   })
-  app.use(cookieParser());
   // Escuchar tanto el microservicio como la aplicación HTTP
   await app.startAllMicroservices()
-  // Aplicar el filtro de excepciones RPC globalmente
-  await app.listen(4002) // Cambia el puerto según sea necesario
+
+  const PORT = Number(process.env.PORT) || 4002
+
+  await app.listen(PORT, () => {
+    console.log('LISTENING IN ', PORT)
+  }) // Cambia el puerto según sea necesario
 }
 bootstrap()

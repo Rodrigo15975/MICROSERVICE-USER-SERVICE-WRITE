@@ -1,22 +1,42 @@
 import { Module } from '@nestjs/common'
-import { RoleService } from './role.service'
-import { RoleController } from './role.controller'
-import { PrismaModule } from 'src/prisma/prisma.module'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ClientsModule, Transport } from '@nestjs/microservices'
+import { PrismaModule } from 'src/prisma/prisma.module'
 import { proxyName } from './common/proxyName/proxyName'
+import { RoleController } from './role.controller'
+import { RoleService } from './role.service'
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     PrismaModule,
-    ClientsModule.register([
+    ClientsModule.registerAsync([
       {
+        imports: [ConfigModule],
         name: proxyName.name,
-        transport: Transport.REDIS,
-        options: {
-          host: 'localhost',
-          port: 6379,
-        },
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.REDIS,
+          options: {
+            host: configService.getOrThrow('REDIS_HOST'),
+            port: configService.getOrThrow('REDIS_PORT'),
+          },
+        }),
+        inject: [ConfigService],
       },
+      // {
+      //   imports: [ConfigModule],
+      //   name: proxyNameWrite.name,
+      //   useFactory: (configService: ConfigService) => ({
+      //     transport: Transport.REDIS,
+      //     options: {
+      //       host: configService.getOrThrow('REDIS_HOST'),
+      //       port: configService.getOrThrow('REDIS_PORT'),
+      //     },
+      //   }),
+      //   inject: [ConfigService],
+      // },
     ]),
   ],
   controllers: [RoleController],
