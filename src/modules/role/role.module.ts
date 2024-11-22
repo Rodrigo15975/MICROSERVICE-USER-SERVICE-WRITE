@@ -25,18 +25,6 @@ import { RoleService } from './role.service'
         }),
         inject: [ConfigService],
       },
-      // {
-      //   imports: [ConfigModule],
-      //   name: proxyNameWrite.name,
-      //   useFactory: (configService: ConfigService) => ({
-      //     transport: Transport.REDIS,
-      //     options: {
-      //       host: configService.getOrThrow('REDIS_HOST'),
-      //       port: configService.getOrThrow('REDIS_PORT'),
-      //     },
-      //   }),
-      //   inject: [ConfigService],
-      // },
     ]),
   ],
   controllers: [RoleController],
