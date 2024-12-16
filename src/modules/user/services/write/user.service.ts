@@ -61,7 +61,7 @@ export class UserServiceWrite implements TypeUserServiceWrite {
             role,
           },
         },
-        ...(auditoria.id && {
+        ...(auditoria?.id && {
           auditoria: {
             connect: {
               id: auditoria.id,
