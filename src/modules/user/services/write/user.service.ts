@@ -4,7 +4,6 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common'
-import { RpcException } from '@nestjs/microservices'
 import { hashPassword } from 'src/common/argonHash'
 import { HandledRpcException } from 'src/common/handle-errorst'
 import { PrismaService } from 'src/prisma/prisma.service'
@@ -88,31 +87,6 @@ export class UserServiceWrite implements TypeUserServiceWrite {
     return !!user
   }
 
-  private async checkFieldAndThrow(
-    field: 'dni' | 'phone',
-    value: string | undefined,
-  ) {
-    const exists = await this.checkIfFieldExists(field, value?.toString() ?? '')
-
-    if (exists)
-      throw new RpcException({
-        message: `Existing ${field.toUpperCase()} ${value}`,
-        statusCode: 409,
-      })
-  }
-
-  private async checkFieldDistinto(
-    dni: string,
-    verifyExistingDni: string,
-    phone: string,
-  ) {
-    if (dni !== verifyExistingDni)
-      await Promise.all([
-        this.checkFieldAndThrow('dni', dni),
-        this.checkFieldAndThrow('phone', phone),
-      ])
-  }
-
   private async createInAuditoriaUser(id: number) {
     try {
       return await this.prismaService.auditoria.create({
@@ -140,12 +114,50 @@ export class UserServiceWrite implements TypeUserServiceWrite {
     }
   }
 
+  private async findOne(id: number) {
+    return await this.prismaService.user.findUnique({
+      where: {
+        id,
+      },
+    })
+  }
+
+  private async field(field: 'dni' | 'phone', value: string) {
+    return await this.prismaService.user.findUnique({
+      where: field === 'dni' ? { dni: value } : { phone: value },
+    })
+  }
+
+  private async verifyDynamicField(id: number, dni: string, phone: string) {
+    const findUser = await this.findOne(id)
+
+    await Promise.all([
+      this.validateField('phone', phone, findUser?.phone ?? ''),
+      this.validateField('dni', dni, findUser?.dni ?? ''),
+    ])
+  }
+
+  private async validateField(
+    field: 'dni' | 'phone',
+    newValue: string,
+    existingValue: string | null,
+  ) {
+    if (existingValue !== newValue)
+      await this.throwIfFieldExists(field, newValue)
+  }
+
+  private async throwIfFieldExists(field: 'dni' | 'phone', value: string) {
+    const existingRecord = await this.field(field, value)
+    if (existingRecord)
+      throw HandledRpcException.rpcException(
+        `Existing ${field} ${value}`,
+        HttpStatus.CONFLICT,
+      )
+  }
   async update(id: number, data: UpdateUserDto): Promise<void | HttpException> {
     const { role, dni, phone, lastname, name, user_active } = data
-    console.log({ data })
 
-    const { dni: existingDni } = await this.userServiceRead.findOne(id)
-    await this.checkFieldDistinto(dni ?? '', existingDni ?? '', phone ?? '')
+    await this.verifyDynamicField(id, dni ?? '', phone ?? '')
 
     const updatedUser = await this.prismaService.user.update({
       data: {
