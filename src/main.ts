@@ -7,10 +7,8 @@ import * as dotenv from 'dotenv'
 dotenv.config()
 
 async function bootstrap() {
-  // Crear la aplicación HTTP
   const app = await NestFactory.create(AppModule)
 
-  // Configurar Swagger
   const config = new DocumentBuilder()
     .setTitle('Documentación de Microservicio User Write')
     .setDescription(
@@ -20,11 +18,10 @@ async function bootstrap() {
     .build()
 
   const document = SwaggerModule.createDocument(app, config)
-  SwaggerModule.setup('microservice-write-user', app, document) // Ruta para acceder a la documentación
+  SwaggerModule.setup('microservice-write-user', app, document)
 
   app.useGlobalPipes(new ValidationPipe())
 
-  // Crear el microservicio
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.REDIS,
     options: {
@@ -36,7 +33,6 @@ async function bootstrap() {
     credentials: true,
     origin: true,
   })
-  // Escuchar tanto el microservicio como la aplicación HTTP
   await app.startAllMicroservices()
 
   const PORT = Number(process.env.PORT) || 4002
