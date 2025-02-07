@@ -38,7 +38,14 @@ async function bootstrap() {
   const PORT = Number(process.env.PORT) || 4002
 
   await app.listen(PORT, () => {
-    console.log('LISTENING IN ', PORT)
-  }) // Cambia el puerto según sea necesario
+    if (process.env.NODE_ENV === 'development') {
+      return console.log(
+        `Servidor escuchando en el puerto ${PORT} en modo ${process.env.NODE_ENV}`,
+      )
+    }
+    console.log(
+      `Servidor escuchando en el puerto ${PORT} en modo ${process.env.NODE_ENV}`,
+    )
+  })
 }
 bootstrap()

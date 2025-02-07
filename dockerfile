@@ -4,16 +4,12 @@ WORKDIR /app
 
 COPY package*.json ./
 
-# cambiar todo
 RUN npm install
-COPY prisma prisma
+
 COPY . .
-
-
-COPY wait-for-db.sh .
+RUN npm run build
 
 EXPOSE 4002
 
-
-CMD ["sh","./wait-for-db.sh"]
+CMD [ "npm","run", "start:prod" ]
 

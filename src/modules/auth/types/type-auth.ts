@@ -8,6 +8,7 @@ export class User {
   role: RolesKey
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const enum Roles {
   USUARIO = 'USUARIO',
   PACIENTE = 'PACIENTE',
