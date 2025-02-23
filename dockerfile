@@ -1,15 +1,40 @@
-FROM node:20-alpine3.20
+###################
+# BUILD FOR LOCAL DEVELOPMENT
+###################
 
-WORKDIR /app
+FROM node:20-alpine As development
+WORKDIR /usr/src/app
+RUN apk add --no-cache openssl
+COPY --chown=node:node package*.json ./
+RUN npm ci
+COPY --chown=node:node . .
+RUN npx prisma generate
+USER node
 
-COPY package*.json ./
+###################
+# BUILD FOR PRODUCTION
+###################
 
-RUN npm install
+FROM node:20-alpine As build
+WORKDIR /usr/src/app
+RUN apk add --no-cache openssl
+COPY --chown=node:node package*.json ./
+COPY --chown=node:node --from=development /usr/src/app/node_modules ./node_modules
+COPY --chown=node:node . .
 
-COPY . .
 RUN npm run build
+ENV NODE_ENV=production
+RUN npm ci --omit=production && npm cache clean --force
 
-EXPOSE 4002
+USER node
 
-CMD [ "npm","run", "start:prod" ]
+###################
+# PRODUCTION
+###################
 
+FROM node:20-alpine As production
+RUN apk add --no-cache openssl
+COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
+COPY --chown=node:node --from=build /usr/src/app/dist ./dist
+COPY --chown=node:node --from=build /usr/src/app/package.json ./package.json
+CMD ["npm","run", "start:prod"]
