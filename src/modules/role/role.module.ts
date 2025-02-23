@@ -23,6 +23,10 @@ import { RoleService } from './role.service'
           options: {
             host: configService.getOrThrow('REDIS_HOST'),
             port: configService.getOrThrow('REDIS_PORT'),
+            password: configService.getOrThrow('REDIS_PASSWORD'),
+            tls: {
+              servername: configService.getOrThrow('REDIS_HOST'),
+            },
           },
         }),
         inject: [ConfigService],

@@ -27,6 +27,10 @@ async function bootstrap() {
     options: {
       host: process.env.REDIS_HOST,
       port: Number(process.env.REDIS_PORT) || 6379,
+      password: process.env.REDIS_PASSWORD,
+      tls: {
+        servername: process.env.REDIS_HOST,
+      },
     },
   })
   app.enableCors({
